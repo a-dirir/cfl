@@ -1,0 +1,9 @@
+boto3
+azure-storage-blob
+azure-identity
+google-cloud-storage
+flask
+flask-cors
+python-dotenv
+numpy
+```
