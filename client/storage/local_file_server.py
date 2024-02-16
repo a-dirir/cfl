@@ -6,12 +6,9 @@ from client.node import Node
 
 
 class FileServer:
-    def __init__(self, node: Node, storage_dir: str, port: int = -1,
-                 host: str = "0.0.0.0", file_extension: str = "txt"):
+    def __init__(self, node: Node, port: int = -1, host: str = "0.0.0.0"):
         self.node = node
-        self.storage_dir = storage_dir
         self.node_id = node.node_id
-        self.file_extension = file_extension
 
         self.app = Flask(__name__)
         self.routes()
@@ -53,14 +50,9 @@ class FileServer:
 
                 resource_idn = msg['token']['access']['resource_idn']
 
-                filename = f"R_{resource_idn}.{self.file_extension}"
-
-                response = make_response(send_file(path.join(self.storage_dir, filename)))
-
-                # comment these 3 lines if you don't want to send info
-                self.node.file_handler.load_files_info(self.storage_dir)
-                meta_data = self.node.file_handler.files[filename]
-                response.headers['info'] = self.node.communicator.outgress(meta_data, request_msg['ek'])
+                filename = f"R_{resource_idn}.txt"
+                filepath = self.node.file_handler.files[resource_idn]['path']
+                response = make_response(send_file(path.join(filepath, filename)))
 
                 return response
             except Exception as e:

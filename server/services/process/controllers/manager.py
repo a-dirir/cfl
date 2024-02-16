@@ -11,7 +11,7 @@ class Manager:
 
         process_id = data['process_id']
         node_id = data['node_id']
-        resources = data['resources']
+        resources = data['data']
 
         if process_id not in self.processes:
             # Get config from db
@@ -40,7 +40,7 @@ class Manager:
 
         process_id = data['process_id']
         node_id = data['node_id']
-        tokens = data['tokens']
+        tokens = data['data']
 
         if process_id not in self.processes:
             return {'error': 'Process not found or not started'}, 400
@@ -67,7 +67,7 @@ class Manager:
 
         process_id = data['process_id']
         node_id = data['node_id']
-        results = data['results']
+        results = data['data']
 
         if process_id not in self.processes:
             return {'error': 'Process not found or not started'}, 400

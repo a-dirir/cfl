@@ -1,4 +1,4 @@
-from os import path, pardir
+from os import path
 
 from dotenv import load_dotenv
 
@@ -30,11 +30,6 @@ n = Node(1)
 #
 # s = Server(n, path.join(n.working_dir, "Processes"))
 
-import requests
-
-from utils.util import c2s
-import pickle
-
 # access = {
 #         'requester_id': 2,
 #         'resource_idn': 'test',
@@ -54,7 +49,7 @@ nn = Node(2)
 #
 # print(con)
 
-from client.storage.local.local_client import LocalClient
+from client.storage.local_client import LocalClient
 
 c = LocalClient(n)
 
