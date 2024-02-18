@@ -1,56 +1,40 @@
 import json
 import requests
-from os import path, mkdir, getenv
+from os import path, mkdir
 from uuid import uuid4
 from client.registration import Registration
+from client.main_server_info import MainServerInfo
 from crypto.communication_handler import CommunicationHandler
 from crypto.file_handler import FileHandler
-from utils.util import c2b, hash_msg
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-
-
-class MainServer:
-    def __init__(self):
-        self.url = getenv("CFL_API_Server_URL")
-
-        signature_key_bytes = c2b(getenv("CFL_API_Server_PSK"))
-        self.ds_key = serialization.load_pem_public_key(signature_key_bytes, backend=default_backend()).public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
-
-        encryption_key_bytes = c2b(getenv("CFL_API_Server_PEK"))
-        self.ec_key = serialization.load_pem_public_key(encryption_key_bytes, backend=default_backend()).public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
 
 
 class Node:
-    def __init__(self, node_id=None):
-        self.main_server = MainServer()
-        self.registration = Registration(self, self.main_server)
+    def __init__(self, node_id=None, root_dir: str = "",
+                 main_server_url: str = "http://127.0.0.1:8080"):
+        self.main_server = MainServerInfo(url=main_server_url)
+        self.registration = Registration(self)
 
         if node_id is not None:
             self.node_id = node_id
-            self.working_dir = path.join(getenv("Work_Directory"), 'client', f'Node_{self.node_id}')
+            self.working_dir = path.join(root_dir, 'Clients', f'Node_{self.node_id}')
             self.communicator = CommunicationHandler(node_id, self.working_dir)
         else:
-            self.create_node()
-
+            self.create_node(root_dir)
 
         self.file_handler = FileHandler(self)
 
-    def create_node(self):
+    def create_node(self, root_dir: str = ""):
         self.communicator = CommunicationHandler(-99, generate_keys=True)
         response = self.registration.create_node({"name": uuid4().hex})
         if response is not None:
             self.node_id = response['node_id']
             self.communicator.node_id = self.node_id
 
-            self.working_dir = path.join(getenv("Work_Directory"), 'client', f'Node_{self.node_id}')
+            # check if the working directory/Clients exists
+            if not path.exists(path.join(root_dir, 'Clients')):
+                mkdir(path.join(root_dir, 'Clients'))
+
+            self.working_dir = path.join(root_dir, 'Clients', f'Node_{self.node_id}')
             mkdir(self.working_dir)
             mkdir(path.join(self.working_dir, "Processes"))
 
@@ -61,15 +45,11 @@ class Node:
             with open(path.join(self.working_dir, 'files_info.json'), 'w') as f:
                 f.write(json.dumps({}))
 
-
+            return True
+        else:
+            return False
 
     def send_request(self, msg: dict, peer_pek: bytes = None, endpoint: str = None, return_response=False):
-        if peer_pek is None:
-            peer_pek = self.main_server.ec_key
-
-        if endpoint is None:
-            endpoint = self.main_server.url
-
         try:
             msg = self.communicator.outgress(msg, peer_pek)
             response = requests.post(endpoint, json=msg).json()
@@ -81,4 +61,3 @@ class Node:
                 return None
         except Exception as e:
             return None
-

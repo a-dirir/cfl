@@ -4,7 +4,6 @@ import pickle
 from storage.aws_s3 import AWSS3
 
 
-
 class StorageController:
     def __init__(self, node, config: dict):
         self.node = node

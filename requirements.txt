@@ -6,4 +6,6 @@ flask
 flask-cors
 python-dotenv
 numpy
-```
+cryptography
+requests
+

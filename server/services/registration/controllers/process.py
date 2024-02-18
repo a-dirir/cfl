@@ -15,9 +15,8 @@ class Process:
         db.create('processes', {
             'process_id': process_id,
             'config': data['config'],
-            'participants': [],
+            'participants': {},
         })
-
 
         return {'process_id': process_id}, 200
 
@@ -71,10 +70,10 @@ class Process:
 
         process_data = db.get('processes', data['process_id'])
 
-        if data['node_id'] in process_data['participants']:
+        if process_data['participants'].get(data['node_id']) is not None:
             return {'error': 'Participant already in Process'}, 400
 
-        process_data['participants'].append(data['node_id'])
+        process_data['participants'][data['node_id']] = data['config']
 
         updated = db.set('processes', data['process_id'], process_data)
 

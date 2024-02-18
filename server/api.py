@@ -1,27 +1,22 @@
-from os import path, getenv, mkdir, getcwd, pardir
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from dotenv import load_dotenv
 
 from crypto.communication_handler import CommunicationHandler
 from server.router import Router
-from server.infra.local.loader import LocalServerLoader
-from server.database.local_db import LocalDB
-from utils.util import c2b
+from utils.util import c2b, c2s
 
 
 class Server:
     def __init__(self, communicator: CommunicationHandler, db):
         self.nodes = {}
         self.communicator = communicator
-
         self.db = db
 
         self.app = Flask(__name__)
         cors = CORS(self.app)
         self.router = Router()
         self.routes()
-        self.app.run(host="0.0.0.0", port=getenv("CFL_API_Server_Port"))
+        self.app.run(host="0.0.0.0", port=8080)
 
     def load_node(self, node_id):
         node = self.db.get("nodes", f"{node_id}")
@@ -33,6 +28,16 @@ class Server:
         return True
 
     def routes(self):
+        @self.app.route('/info', methods=['GET'])
+        def index():
+            # return public key of the server
+            msg = {
+                "pek": c2s(self.communicator.encryptor.get_public_key()),
+                "psk": c2s(self.communicator.signer.get_public_key())
+            }
+
+            return jsonify(msg=msg, status_code=200)
+
         @self.app.route('/', methods=['POST'])
         def app():
             # load json data from request
@@ -41,7 +46,7 @@ class Server:
             # check if signature key belongs to node_id
             node_id = request_msg.get('node_id')
             signature_key = request_msg.get('sk')
-            encrption_key = request_msg.get('ek')
+            encryption_key = request_msg.get('ek')
 
             if node_id is None or signature_key is None:
                 return jsonify(msg='Request is missing node_id or signature key', status_code=401)
@@ -70,29 +75,10 @@ class Server:
             msg, status_code = self.router.route(payload)
 
             # encrypt the response
-            msg = self.communicator.outgress(msg, c2b(encrption_key))
+            msg = self.communicator.outgress(msg, c2b(encryption_key))
 
             # return a flask response object to the client
             if status_code == 200:
                 return jsonify(msg=msg, status_code=status_code)
             else:
-                return jsonify(msg, status_code=status_code)
-
-
-
-if __name__ == '__main__':
-    dir_path = path.dirname(path.realpath(__file__))
-    parent_path = path.abspath(path.join(dir_path, pardir))
-    load_dotenv(path.join(parent_path, 'config.env'))
-
-    deployment_type = getenv("Deployment_Environment")
-
-    if deployment_type == "local":
-        print("Local deployment")
-        directory = path.join(getenv("Work_Directory"), 'server')
-        deployment = LocalServerLoader({'directory': directory})
-        communication_handler = deployment.load()
-        db = LocalDB(directory)
-        server = Server(communication_handler, db)
-
-
+                return jsonify(msg=msg, status_code=status_code)

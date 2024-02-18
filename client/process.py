@@ -35,7 +35,7 @@ class Process:
             }
         }
 
-        response = self.node.send_request(msg)
+        response = self.node.send_request(msg, self.node.main_server.ec_key, self.node.main_server.url)
         if response is not None:
             return response
         else:
