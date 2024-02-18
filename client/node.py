@@ -18,12 +18,13 @@ class Node:
             self.node_id = node_id
             self.working_dir = path.join(root_dir, 'Clients', f'Node_{self.node_id}')
             self.communicator = CommunicationHandler(node_id, self.working_dir)
+            self.file_handler = FileHandler(self)
         else:
             self.create_node(root_dir)
 
-        self.file_handler = FileHandler(self)
 
-    def create_node(self, root_dir: str = ""):
+
+    def create_node(self, root_dir: str):
         self.communicator = CommunicationHandler(-99, generate_keys=True)
         response = self.registration.create_node({"name": uuid4().hex})
         if response is not None:
@@ -45,6 +46,8 @@ class Node:
             with open(path.join(self.working_dir, 'files_info.json'), 'w') as f:
                 f.write(json.dumps({}))
 
+            self.file_handler = FileHandler(self)
+
             return True
         else:
             return False
@@ -53,7 +56,6 @@ class Node:
         try:
             msg = self.communicator.outgress(msg, peer_pek)
             response = requests.post(endpoint, json=msg).json()
-
             if response['status_code'] == 200:
                 response = self.communicator.ingress(response['msg'], return_response)
                 return response

@@ -14,7 +14,7 @@ class LocalServerLoader:
     def load(self):
         """Load infrastructure."""
         root_dir = self.config.get("root_dir")
-        self.directory = path.join(root_dir, "server")
+        self.directory = path.join(root_dir, "Server")
 
         # create data directory if not exists
         if not path.exists(self.directory):
