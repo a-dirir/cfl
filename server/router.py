@@ -15,7 +15,6 @@ class Router:
         access = payload['msg']['access']
 
         action = access.split(':')
-        print(action)
         # extract service, controller and method from request action
         service = str(action[0]); handler = str(action[1]); method = str(action[2])
 
