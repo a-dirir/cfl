@@ -3,6 +3,7 @@ from os import path, pardir
 from dotenv import load_dotenv
 
 from client.node import Node
+n = Node(1)
 #
 # dir_path = path.dirname(path.realpath(__file__))
 # load_dotenv(path.join(dir_path, 'config.env'))

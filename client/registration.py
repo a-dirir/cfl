@@ -117,7 +117,7 @@ class Registration:
         msg = {
             "access": "Registration:Process:Participate",
             "data": {
-                "process_id": f"{process_id}",
+                "process_id": process_id,
                 "node_id": self.node.node_id,
                 "config": config
             }

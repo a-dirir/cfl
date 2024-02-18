@@ -19,7 +19,7 @@ class Server:
         self.app.run(host="0.0.0.0", port=8080)
 
     def load_node(self, node_id):
-        node = self.db.get("nodes", f"{node_id}")
+        node = self.db.get("nodes", node_id)
         if node is None:
             return False
 
