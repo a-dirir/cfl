@@ -4,7 +4,7 @@ from server.api import Server
 
 
 if __name__ == '__main__':
-    root_dir = ""
+    root_dir = "C:\\Users\\AhmedDirir\\Documents\\CFL"
     server_loader = LocalServerLoader({'root_dir': root_dir})
     communication_handler = server_loader.load()
     db = LocalDB(server_loader.directory)
