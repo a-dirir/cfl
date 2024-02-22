@@ -47,18 +47,18 @@ class MappingTables:
 
         group_index = tree_node.group_index
         block_num = tree_node.block_num
-        current_poistion = self.cursor[group_index][block_num - 1]['current_position']
+        current_position = self.cursor[group_index][block_num - 1]['current_position']
         current_group = self.cursor[group_index][block_num - 1]['current_group']
 
         for i in range(num_new_workers):
-            if current_poistion >= len(self.mapping_tables[current_group][block_num - 1]):
-                current_poistion = 0
+            if current_position >= len(self.mapping_tables[current_group][block_num - 1]):
+                current_position = 0
                 current_group = (current_group + 1) % len(self.groups)
 
                 if current_group == self.cursor[group_index][block_num - 1]['initial_group']:
                     return []
 
-            workers.append(self.mapping_tables[current_group][block_num - 1][current_poistion])
-            current_poistion += 1
+            workers.append(self.mapping_tables[current_group][block_num - 1][current_position])
+            current_position += 1
 
         return workers

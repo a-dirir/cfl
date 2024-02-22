@@ -49,8 +49,8 @@ class Scheduler:
         self.state.root.compute()
         self.jobs.refresh()
 
-    def get_jobs(self, node_id: int):
-        return self.jobs.get_jobs(node_id)
+    def get_jobs(self, worker_id: int):
+        return self.jobs.get_jobs(worker_id)
 
     def add_tokens(self, worker_id: int, tokens: dict):
         for idn, token_values in tokens.items():
