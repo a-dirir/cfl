@@ -3,9 +3,11 @@ from hashlib import sha256
 
 
 class Computation:
-    def __init__(self, block_num: int, group_index: int, children: list, scheduler):
-        self.idn = ""
+    def __init__(self, block_num: int, group_index: int, children: list, scheduler, idn: str = None):
+        self.type = "computation"
+        self.idn = idn
         self.value = None
+
         self.block_num = block_num
         self.group_index = group_index
         self.children = children
@@ -13,15 +15,14 @@ class Computation:
 
         self.results = {}
         self.workers = []
-        self.owners = []
-
-
-        self.type = "computation"
         self.computable = False
 
         self.set_identifier()
 
     def set_identifier(self):
+        if self.idn is not None:
+            return
+
         # get idns of children, sort them, convert to binary using pickle, hash the sorted list
         idns = [child.idn for child in self.children]
         idns.sort()

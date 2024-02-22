@@ -3,17 +3,15 @@ from hashlib import sha256
 
 
 class Group:
-    def __init__(self, num_blocks: int, nodes: list, children: list, scheduler):
-        self.num_blocks = num_blocks
-        self.nodes = nodes
-        self.workers = nodes
-        self.children = children
-        self.scheduler = scheduler
-
+    def __init__(self, num_blocks: int, workers: list, children: list, scheduler):
+        self.type = "group"
         self.idn = None
         self.value = None
 
-        self.type = "group"
+        self.num_blocks = num_blocks
+        self.workers = workers
+        self.children = children
+        self.scheduler = scheduler
 
         self.set_identifier()
 
@@ -64,8 +62,8 @@ class Group:
                 return False
 
             holders = child.get_holders()
-            for node in self.nodes:
-                if node not in holders:
+            for worker in self.workers:
+                if worker not in holders:
                     return False
 
         self.value = 'Committed'

@@ -6,28 +6,21 @@ from process.scheduling.jobs import Jobs
 
 
 class Scheduler:
-    def __init__(self, resources: dict, config: dict):
-        self.nodes = [node_id for node_id in resources.keys()]
+    def __init__(self, workers: list, config: dict):
+        self.workers = workers
         self.config = config
 
-        self.groups = DefaultGroupingAlgorithm(self.nodes, config).apply()
+        self.groups = DefaultGroupingAlgorithm(self.workers, config).apply()
 
         self.mapping_tables = MappingTables(self.groups, config)
 
         self.consensus_algorithm = DefaultConsensusAlgorithm(config)
 
-        self.state = self.initialize_state(resources, config)
+        self.state = State(self, self.groups, config)
 
-        self.jobs = Jobs(self.nodes)
+        self.jobs = Jobs(self.workers)
 
-        self.tokens = {node_id: {} for node_id in self.nodes}
-
-    def initialize_state(self, resources: dict, config: dict):
-        state_groups = []
-        for group in self.groups:
-            state_groups.append({node_id: resources[node_id] for node_id in group})
-
-        return State(self, state_groups, config)
+        self.tokens = {worker_id: {} for worker_id in self.workers}
 
     def schedule(self, tree_node):
         if tree_node.type == 'computation':
@@ -50,7 +43,7 @@ class Scheduler:
         if tree_node.check_commit():
             return
 
-        self.jobs.assign_jobs(tree_node, tree_node.nodes)
+        self.jobs.assign_jobs(tree_node, tree_node.workers)
 
     def compute(self):
         self.state.root.compute()
@@ -59,22 +52,22 @@ class Scheduler:
     def get_jobs(self, node_id: int):
         return self.jobs.get_jobs(node_id)
 
-    def add_tokens(self, node_id: int, tokens: dict):
+    def add_tokens(self, worker_id: int, tokens: dict):
         for idn, token_values in tokens.items():
             for non_holder_worker, token in token_values.items():
-                if self.jobs.check_upload_job_validity(node_id, idn, non_holder_worker):
+                if self.jobs.check_upload_job_validity(worker_id, idn, non_holder_worker):
                     if self.tokens[non_holder_worker].get(idn) is None:
                         self.tokens[non_holder_worker][idn] = {}
 
-                    self.tokens[non_holder_worker][idn][node_id] = token
+                    self.tokens[non_holder_worker][idn][worker_id] = token
 
-    def get_tokens(self, node_id: int):
-        return self.tokens[node_id]
+    def get_tokens(self, worker_id: int):
+        return self.tokens[worker_id]
 
-    def submit_jobs(self, node_id: int, results: dict):
+    def submit_jobs(self, worker_id: int, results: dict):
         for idn, result in results.items():
-            if self.jobs.check_non_upload_job_validity(node_id, result['type'], idn):
-                self.state.add_results(node_id, idn, result['value'])
+            if self.jobs.check_non_upload_job_validity(worker_id, result['type'], idn):
+                self.state.add_results(worker_id, idn, result['value'])
 
     def is_round_complete(self):
         if self.state.root.check_commit():
