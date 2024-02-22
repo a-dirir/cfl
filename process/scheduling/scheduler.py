@@ -22,6 +22,8 @@ class Scheduler:
 
         self.tokens = {worker_id: {} for worker_id in self.workers}
 
+        self.compute()
+
     def schedule(self, tree_node):
         if tree_node.type == 'computation':
             self.schedule_computation(tree_node)
